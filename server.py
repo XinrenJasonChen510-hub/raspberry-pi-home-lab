@@ -1,10 +1,14 @@
-
 import json
+import logging
 import platform
 import shutil
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s: %(message)s",
+)
 
 def get_memory_info():
     values = {}
@@ -48,7 +52,10 @@ def get_status():
 
 class StatusHandler(BaseHTTPRequestHandler):
     def do_GET(self):
+        logging.info("Received request: %s", self.path)
+
         if self.path != "/status":
+            logging.warning("Unknown endpoint requested: %s", self.path)
             self.send_error(404, "Endpoint not found")
             return
 
@@ -60,6 +67,7 @@ class StatusHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(response)
 
+        logging.info("Status request completed: 200")
 
 if __name__ == "__main__":
     server = HTTPServer(("0.0.0.0", 8000), StatusHandler)
