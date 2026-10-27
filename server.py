@@ -27,10 +27,10 @@ def get_memory_info():
 
 def get_status():
     disk = shutil.disk_usage("/")
-    uptime_seconds = float(
-        open("/proc/uptime", encoding="utf-8").read().split()[0]
-    )
 
+    with open("/proc/uptime", encoding="utf-8") as file:
+        uptime_seconds = float(file.read().split()[0])
+    
     return {
         "hostname": platform.node(),
         "system": platform.system(),
