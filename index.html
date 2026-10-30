@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raspberry Pi Home Lab</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #111827;
+            color: white;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #9ca3af;
+            margin-bottom: 30px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: #1f2937;
+            padding: 24px;
+            border-radius: 12px;
+        }
+
+        .card h2 {
+            font-size: 15px;
+            color: #9ca3af;
+        }
+
+        .value {
+            font-size: 30px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        .footer {
+            color: #9ca3af;
+            margin-top: 30px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Raspberry Pi Home Lab</h1>
+        <p class="subtitle">System Monitoring Dashboard</p>
+
+        <div class="grid">
+            <div class="card">
+                <h2>Memory Used</h2>
+                <div class="value" id="memory">Loading...</div>
+            </div>
+
+            <div class="card">
+                <h2>Memory Available</h2>
+                <div class="value" id="available">Loading...</div>
+            </div>
+
+            <div class="card">
+                <h2>Disk Usage</h2>
+                <div class="value" id="disk">Loading...</div>
+            </div>
+
+            <div class="card">
+                <h2>System Uptime</h2>
+                <div class="value" id="uptime">Loading...</div>
+            </div>
+        </div>
+
+        <p class="footer" id="updated">
+            Waiting for Raspberry Pi...
+        </p>
+    </div>
+
+    <script>
+        async function updateDashboard() {
+            try {
+                const response = await fetch("/status");
+
+                if (!response.ok) {
+                    throw new Error("API request failed");
+                }
+
+                const data = await response.json();
+
+                document.getElementById("memory").textContent =
+                    data.memory.used_mib + " MiB";
+
+                document.getElementById("available").textContent =
+                    data.memory.available_mib + " MiB";
+
+                document.getElementById("disk").textContent =
+                    data.disk.usage_percent + "%";
+
+                document.getElementById("uptime").textContent =
+                    data.uptime_hours + " hours";
+
+                document.getElementById("updated").textContent =
+                    "Last updated: " + new Date().toLocaleTimeString();
+
+            } catch (error) {
+                document.getElementById("updated").textContent =
+                    "Unable to connect to Raspberry Pi API";
+            }
+        }
+
+        updateDashboard();
+        setInterval(updateDashboard, 5000);
+    </script>
+</body>
+</html>

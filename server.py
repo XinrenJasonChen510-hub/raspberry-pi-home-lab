@@ -50,9 +50,33 @@ def get_status():
     }
 
 
+
 class StatusHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         logging.info("Received request: %s", self.path)
+
+        if self.path == "/":
+            try:
+                with open("index.html", "rb") as file:
+                    response = file.read()
+
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(response)))
+                self.end_headers()
+                self.wfile.write(response)
+
+                logging.info("Dashboard request completed: 200")
+
+            except FileNotFoundError:
+                logging.exception("Dashboard file not found")
+                self.send_error(404, "Dashboard not found")
+
+            except Exception:
+                logging.exception("Failed to serve dashboard")
+                self.send_error(500, "Internal server error")
+
+            return
 
         if self.path != "/status":
             logging.warning("Unknown endpoint requested: %s", self.path)
@@ -83,3 +107,15 @@ class StatusHandler(BaseHTTPRequestHandler):
         self.wfile.write(response)
 
         logging.info("Status request completed: 200")
+
+
+if __name__ == "__main__":
+    server = HTTPServer(("0.0.0.0", 8000), StatusHandler)
+    print("System Status API running on port 8000")
+    print("Endpoint: http://192.168.3.152:8000/status")
+
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nServer stopped.")
+        server.server_close()
