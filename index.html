@@ -52,6 +52,37 @@
             margin-top: 15px;
         }
 
+        .progress-container {
+            width: 100%;
+            height: 10px;
+            background: #374151;
+            border-radius: 10px;
+            margin-top: 18px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: #22c55e;
+            border-radius: 10px;
+            transition: width 0.5s ease, background 0.5s ease;
+        }
+
+        .progress-bar.warning {
+            background: #f59e0b;
+        }
+
+        .progress-bar.danger {
+            background: #ef4444;
+        }
+
+        .progress-label {
+            color: #9ca3af;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
         .footer {
             color: #9ca3af;
             margin-top: 30px;
@@ -69,6 +100,11 @@
             <div class="card">
                 <h2>Memory Used</h2>
                 <div class="value" id="memory">Loading...</div>
+
+                <div class="progress-container">
+                    <div class="progress-bar" id="memory-bar"></div>
+                </div>
+                <div class="progress-label" id="memory-percent">Loading...</div>
             </div>
 
             <div class="card">
@@ -79,6 +115,11 @@
             <div class="card">
                 <h2>Disk Usage</h2>
                 <div class="value" id="disk">Loading...</div>
+
+                <div class="progress-container">
+                    <div class="progress-bar" id="disk-bar"></div>
+                </div>
+                <div class="progress-label">Disk space used</div>
             </div>
 
             <div class="card">
@@ -93,6 +134,25 @@
     </div>
 
     <script>
+        function updateProgressBar(barId, percentage) {
+            const bar = document.getElementById(barId);
+
+            const safePercentage = Math.max(
+                0,
+                Math.min(100, percentage)
+            );
+
+            bar.style.width = safePercentage + "%";
+
+            bar.classList.remove("warning", "danger");
+
+            if (safePercentage >= 90) {
+                bar.classList.add("danger");
+            } else if (safePercentage >= 70) {
+                bar.classList.add("warning");
+            }
+        }
+
         async function updateDashboard() {
             try {
                 const response = await fetch("/status");
@@ -102,6 +162,9 @@
                 }
 
                 const data = await response.json();
+
+                const memoryPercent =
+                    data.memory.used_mib / data.memory.total_mib * 100;
 
                 document.getElementById("memory").textContent =
                     data.memory.used_mib + " MiB";
@@ -114,6 +177,12 @@
 
                 document.getElementById("uptime").textContent =
                     data.uptime_hours + " hours";
+
+                updateProgressBar("memory-bar", memoryPercent);
+                updateProgressBar("disk-bar", data.disk.usage_percent);
+
+                document.getElementById("memory-percent").textContent =
+                    memoryPercent.toFixed(1) + "% of memory used";
 
                 document.getElementById("updated").textContent =
                     "Last updated: " + new Date().toLocaleTimeString();
