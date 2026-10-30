@@ -59,7 +59,22 @@ class StatusHandler(BaseHTTPRequestHandler):
             self.send_error(404, "Endpoint not found")
             return
 
-        response = json.dumps(get_status(), indent=2).encode("utf-8")
+        try:
+            response = json.dumps(get_status(), indent=2).encode("utf-8")
+
+        except Exception:
+            logging.exception("Failed to generate system status")
+
+            error_response = json.dumps({
+                "error": "Internal server error"
+            }).encode("utf-8")
+
+            self.send_response(500)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(error_response)))
+            self.end_headers()
+            self.wfile.write(error_response)
+            return
 
         self.send_response(200)
         self.send_header("Content-Type", "application/json; charset=utf-8")
@@ -68,14 +83,3 @@ class StatusHandler(BaseHTTPRequestHandler):
         self.wfile.write(response)
 
         logging.info("Status request completed: 200")
-
-if __name__ == "__main__":
-    server = HTTPServer(("0.0.0.0", 8000), StatusHandler)
-    print("System Status API running on port 8000")
-    print("Endpoint: http://192.168.3.152:8000/status")
-
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        print("\nServer stopped.")
-        server.server_close()

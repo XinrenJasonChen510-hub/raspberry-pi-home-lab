@@ -4,6 +4,7 @@ import threading
 import unittest
 from urllib.request import urlopen
 from urllib.error import HTTPError
+from unittest.mock import patch
 from http.server import HTTPServer
 
 from server import StatusHandler
@@ -52,6 +53,17 @@ class TestStatusAPI(unittest.TestCase):
 
         self.assertEqual(error.exception.code, 404)
 
+    @patch("server.get_status", side_effect=RuntimeError("Simulated failure"))
+    def test_status_returns_500_when_status_generation_fails(self, mock_get_status):
+        url = f"http://127.0.0.1:{self.port}/status"
+
+        with self.assertRaises(HTTPError) as error:
+            urlopen(url)
+
+        self.assertEqual(error.exception.code, 500)
+
+        data = json.loads(error.exception.read().decode("utf-8"))
+        self.assertEqual(data, {"error": "Internal server error"})
 
 if __name__ == "__main__":
     unittest.main()
