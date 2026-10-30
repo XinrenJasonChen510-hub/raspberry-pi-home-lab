@@ -98,6 +98,16 @@
 
         <div class="grid">
             <div class="card">
+                <h2>CPU Usage</h2>
+                <div class="value" id="cpu">Loading...</div>
+
+                <div class="progress-container">
+                    <div class="progress-bar" id="cpu-bar"></div>
+                </div>
+                <div class="progress-label">Processor usage</div>
+            </div>
+
+            <div class="card">
                 <h2>Memory Used</h2>
                 <div class="value" id="memory">Loading...</div>
 
@@ -162,6 +172,13 @@
                 }
 
                 const data = await response.json();
+
+const cpuPercent = data.cpu.usage_percent;
+
+document.getElementById("cpu").textContent =
+    cpuPercent.toFixed(1) + "%";
+
+updateProgressBar("cpu-bar", cpuPercent);
 
                 const memoryPercent =
                     data.memory.used_mib / data.memory.total_mib * 100;

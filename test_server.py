@@ -41,6 +41,10 @@ class TestStatusAPI(unittest.TestCase):
 
         self.assertIn("hostname", data)
         self.assertIn("system", data)
+        self.assertIn("cpu", data)
+        self.assertIn("usage_percent", data["cpu"])
+        self.assertGreaterEqual(data["cpu"]["usage_percent"], 0)
+        self.assertLessEqual(data["cpu"]["usage_percent"], 100)
         self.assertIn("memory", data)
         self.assertIn("disk", data)
         self.assertIn("uptime_hours", data)
